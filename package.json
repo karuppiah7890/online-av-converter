@@ -1,0 +1,9 @@
+{
+  "name": "online-av-converter",
+  "version": "0.0.1",
+  "description": "Open Source Online Audio Video Converter which converts audio and videos from one format to another ",
+  "main": "server.js",
+  "repository": "https://github.com/karuppiah7890/online-av-converter",
+  "author": "Karuppiah N <karuppiah7890@gmail.com>",
+  "license": "MIT"
+}
