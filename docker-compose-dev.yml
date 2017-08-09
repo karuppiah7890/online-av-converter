@@ -1,0 +1,25 @@
+version: "2"
+
+services: 
+  api:
+    build: .
+    command: npm run dev
+    environment:
+      - DEBUG=server:*,worker:*
+      - DEBUG_COLORS=true
+      - WORKER_STARTUP_SECONDS=1
+    ports:
+      - "8080:8080"
+    links:
+      - rabbitmq
+    volumes: 
+      - api-deps:/code/node_modules
+      - .:/code
+  
+  rabbitmq:
+    image: "rabbitmq:latest"
+    # environment:
+    #  - RABBITMQ_HIPE_COMPILE=1
+
+volumes:
+  api-deps:

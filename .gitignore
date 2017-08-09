@@ -1,0 +1,8 @@
+# npm modules
+node_modules/
+
+# logs
+*.log
+
+# uploads folder
+backend/uploads/
