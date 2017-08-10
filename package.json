@@ -8,7 +8,9 @@
   "license": "MIT",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon backend/server.js",
+    "test": "npm run standard",
+    "standard": "standard --fix"
   },
   "dependencies": {
     "amqplib": "^0.5.1",
