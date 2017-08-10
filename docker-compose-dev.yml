@@ -7,10 +7,11 @@ services:
     environment:
       - DEBUG=server:*,server-redis:*,worker:*,converter-ffmpeg:*,converter-redis:*,examineFile:*
       - DEBUG_COLORS=true
-      - WORKER_STARTUP_SECONDS=1
-    ports:
-      - "8080:8080"
+      - WORKER_STARTUP_SECONDS=15
     links:
+      - redis
+      - rabbitmq
+    depends_on:
       - redis
       - rabbitmq
     volumes: 
@@ -18,12 +19,26 @@ services:
       - .:/code
 
   redis:
-    image: "redis:alpine"
+    image: redis:alpine
 
   rabbitmq:
-    image: "rabbitmq:latest"
+    image: rabbitmq:latest
     # environment:
     #  - RABBITMQ_HIPE_COMPILE=1
+
+  nginx:
+    build: 
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    image: av-converter-nginx
+    ports: 
+      - 8080:80
+    links:
+      - api  
+    volumes:
+      - ./backend/downloads/:/code/backend/downloads
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./frontend:/code/frontend
 
 volumes:
   api-deps:

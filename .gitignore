@@ -7,3 +7,6 @@ node_modules/
 # uploads and downloads folder
 backend/uploads/
 backend/downloads/
+
+# frontend build files
+frontend/build/

@@ -18,6 +18,7 @@
     "debug": "^2.6.8",
     "express": "^4.15.4",
     "fluent-ffmpeg": "^2.1.2",
+    "jquery": "^3.2.1",
     "mmmagic": "^0.4.5",
     "multer": "^1.3.0",
     "nodemon": "^1.11.0",
