@@ -5,12 +5,11 @@ const express = require('express')
 const multer = require('multer')
 const redis = require('redis')
 const bodyParser = require('body-parser')
-const mmm = require('mmmagic')
+const constants = require('../constants')
 
-const Magic = mmm.Magic
-const magic = new Magic(mmm.MAGIC_MIME_TYPE)
-
-const UPLOADS_DIRECTORY = `${__dirname}/uploads`
+const ALLOWED_MIME_TYPES = constants.ALLOWED_MIME_TYPES
+const UPLOADS_DIRECTORY = constants.UPLOADS_DIRECTORY
+const MAX_FILE_SIZE = 1000 * 1000 * 100 // file size in bytes
 
 const log = debug('server:log')
 log.log = console.log.bind(console)
@@ -27,38 +26,24 @@ client.on('error', (err) => {
   redisError(err)
 })
 
-// multer storage config for filtering / storing uploaded files
-
-const ALLOWED_MIME_TYPES = ['video/mp4']
-
 // Check mimetype with the contents of the file
-const isValidFile = (file, cb) => {
-  magic.detectFile(`${UPLOADS_DIRECTORY}/${file.filename}`, (err, mimetype) => {
-    if (err) {
-      error(err)
-      cb(null, false)
-    }
-    if (ALLOWED_MIME_TYPES.includes(mimetype)) {
-      log(`Mime Type of the uploaded video ${file.filename} is ${mimetype} and it's allowed`)
-      cb(null, true)
-    } else {
-      log(`Mime Type of the uploaded video ${file.filename} is ${mimetype} and it's NOT allowed`)
-      cb(null, false)
-    }
-  })
-}
+const examineFile = require('./examineFile')
 
 var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     cb(null, UPLOADS_DIRECTORY)
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     cb(null, `video-${Date.now()}`)
   }
 })
 
 const upload = multer({
   storage: storage,
+  limits: {
+    files: 1,
+    fileSize: MAX_FILE_SIZE
+  },
   fileFilter: (req, file, cb) => {
     // Check mimetype with just the extension of the file
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
@@ -84,61 +69,58 @@ app.get('/alive', (req, res) => {
   })
 })
 
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/upload', upload.single('file'), examineFile, (req, res, next) => {
   // req.file is the file object with metadata
   // req.body will hold the text fields
-  if (!req.file) {
-    res.status(400).json({
-      error: 'Invalid or no file found'
+  const {
+    file,
+    body
+  } = req
+
+  log(file)
+  body.inputFilename = file.filename
+  const open = amqplib.connect(rabbitmqHostUrl)
+  const q = 'tasks'
+  // Task Producer
+  open.then((conn) => {
+    let ok = conn.createChannel()
+    return ok.then((ch) => {
+      ch.assertQueue(q)
+      ch.sendToQueue(q, Buffer.from(JSON.stringify(body, null, 2)))
     })
-    return
-  }
-  isValidFile(req.file, (err, result) => {
-    if (err) { error(err) }
-    if (!result) {
-      res.status(400).json({
-        error: 'Invalid or no file found'
-      })
-      return
-    }
-    log(req.file)
-    req.body.inputFilename = req.file.filename
-    const open = amqplib.connect(rabbitmqHostUrl)
-    const q = 'tasks'
-    // Task Producer
-    open.then((conn) => {
-      let ok = conn.createChannel()
-      return ok.then((ch) => {
-        ch.assertQueue(q)
-        ch.sendToQueue(q, Buffer.from(JSON.stringify(req.body, null, 2)))
-      })
+  })
+  .then((result) => {
+    if (result) { log(result) }
+    res.json({
+      inputFilename: file.filename
     })
-    .then((result) => {
-      if (result) { log(result) }
-      res.json({
-        inputFilename: req.file.filename
-      })
-    })
-    .catch((err) => {
-      error(err)
-      res.send(500).json({
-        error: err.message
-      })
-    })
+  })
+  .catch((err) => {
+    next(err)
   })
 })
 
-app.post('/info', (req, res) => {
+app.post('/info', (req, res, next) => {
   client.hgetall([ req.body.inputFilename ], (err, result) => {
     if (err) {
       redisError(err)
-      res.status(500).json({
-        error: err.message
-      })
-      return
+      next(err)
     }
     res.json(result)
   })
+})
+
+app.use((err, req, res, next) => {
+  error(err)
+  if (err.clientError) {
+    res.status(400).json({
+      error: err.message
+    })
+  } else {
+    res.status(500).json({
+      error: err.message
+    })
+  }
 })
 
 app.listen(PORT, () => {

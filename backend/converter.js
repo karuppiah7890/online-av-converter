@@ -1,10 +1,11 @@
 const debug = require('debug')
 const ffmpeg = require('fluent-ffmpeg')
 const redis = require('redis')
-const status = require('../constants').status
+const constants = require('../constants')
+const status = constants.processingStatus
 
-const UPLOADS_DIRECTORY = `${__dirname}/uploads`
-const DOWNLOADS_DIRECTORY = `${__dirname}/downloads`
+const UPLOADS_DIRECTORY = constants.UPLOADS_DIRECTORY
+const DOWNLOADS_DIRECTORY = constants.DOWNLOADS_DIRECTORY
 
 const log = debug('converter-ffmpeg:log')
 log.log = console.log.bind(console)
@@ -23,37 +24,46 @@ client.on('error', (err) => {
 let errorCode = 0
 
 const convert = (args) => {
-  const outputFilename = `${args.inputFilename}.${args.outputFormat}`
-  client.hset([ args.inputFilename, 'status', status.idle ], redis.print)
-  client.hset([ args.inputFilename, 'outputFilename', outputFilename ], redis.print)
-  client.hset([ args.inputFilename, 'progress', '0' ], redis.print)
+  const {
+    inputFilename,
+    outputFormat,
+    videoBitrate,
+    audioBitrate,
+    seekInput,
+    duration
+  } = args
 
-  ffmpeg(`${UPLOADS_DIRECTORY}/${args.inputFilename}`)
-  .videoBitrate(args.videoBitrate)
-  .audioBitrate(args.audioBitrate)
-  .seekInput(args.seekInput)
-  .duration(args.duration)
+  const outputFilename = `${inputFilename}.${outputFormat}`
+  client.hset([ inputFilename, 'status', status.idle ], redis.print)
+  client.hset([ inputFilename, 'outputFilename', outputFilename ], redis.print)
+  client.hset([ inputFilename, 'progress', '0' ], redis.print)
+
+  ffmpeg(`${UPLOADS_DIRECTORY}/${inputFilename}`)
+  .videoBitrate(videoBitrate)
+  .audioBitrate(audioBitrate)
+  .seekInput(seekInput)
+  .duration(duration)
   .on('start', (commandLine) => {
     log(`Spawned ffmpeg with command: ${commandLine}`)
-    client.hset([ args.inputFilename, 'status', status.processing ], redis.print)
+    client.hset([ inputFilename, 'status', status.processing ], redis.print)
   })
   .on('progress', (progress) => {
     if (progress && progress.percent) {
       log(`Processing: ${progress.percent}% done.`)
       if (errorCode === 1) {
-        client.hset([ args.inputFilename, 'status', status.processing ], redis.print)
+        client.hset([ inputFilename, 'status', status.processing ], redis.print)
         errorCode = 0
       }
-      client.hset([ args.inputFilename, 'progress', progress.percent ], redis.print)
+      client.hset([ inputFilename, 'progress', progress.percent ], redis.print)
     } else {
       error(`Progress is not defined`)
-      client.hset([ args.inputFilename, 'status', status.error ], redis.print)
+      client.hset([ inputFilename, 'status', status.error ], redis.print)
       errorCode = 1
     }
   })
   .on('error', (err, stdout, stderr) => {
-    client.hset([ args.inputFilename, 'status', status.error ], redis.print)
-    client.hset([ args.inputFilename, 'error', err.message ], redis.print)
+    client.hset([ inputFilename, 'status', status.error ], redis.print)
+    client.hset([ inputFilename, 'error', err.message ], redis.print)
     errorCode = 1
     error(`Cannot process video: ${err.message}`)
     error(`Stderr of ffmpeg: ${stderr}`)
@@ -61,8 +71,8 @@ const convert = (args) => {
   })
   .on('end', (stdout, stderr) => {
     log('Transcoding succeeded !')
-    client.hset([ args.inputFilename, 'status', status.finished ], redis.print)
-    client.hset([ args.inputFilename, 'progress', '100' ], redis.print)
+    client.hset([ inputFilename, 'status', status.finished ], redis.print)
+    client.hset([ inputFilename, 'progress', '100' ], redis.print)
   })
   .save(`${DOWNLOADS_DIRECTORY}/${outputFilename}`)
 }

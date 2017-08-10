@@ -5,7 +5,7 @@ services:
     build: .
     command: npm run dev
     environment:
-      - DEBUG=server:*,server-redis:*,worker:*,converter-ffmpeg:*,converter-redis:*
+      - DEBUG=server:*,server-redis:*,worker:*,converter-ffmpeg:*,converter-redis:*,examineFile:*
       - DEBUG_COLORS=true
       - WORKER_STARTUP_SECONDS=1
     ports:
