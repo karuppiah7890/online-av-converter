@@ -2,11 +2,13 @@ FROM karuppiah7890/ffmpeg-and-node:latest
 
 WORKDIR /code/
 
+RUN apk --no-cache add make gcc libgcc g++ libgc++ python
+
 COPY package.json .
 
 COPY yarn.lock .
 
-RUN yarn
+RUN yarn install
 
 COPY . .
 

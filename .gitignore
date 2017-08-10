@@ -4,5 +4,6 @@ node_modules/
 # logs
 *.log
 
-# uploads folder
+# uploads and downloads folder
 backend/uploads/
+backend/downloads/

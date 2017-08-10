@@ -12,9 +12,13 @@
   },
   "dependencies": {
     "amqplib": "^0.5.1",
+    "body-parser": "^1.17.2",
     "debug": "^2.6.8",
     "express": "^4.15.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "mmmagic": "^0.4.5",
     "multer": "^1.3.0",
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.11.0",
+    "redis": "^2.8.0"
   }
 }

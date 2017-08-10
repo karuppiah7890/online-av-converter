@@ -5,17 +5,21 @@ services:
     build: .
     command: npm run dev
     environment:
-      - DEBUG=server:*,worker:*
+      - DEBUG=server:*,server-redis:*,worker:*,converter-ffmpeg:*,converter-redis:*
       - DEBUG_COLORS=true
       - WORKER_STARTUP_SECONDS=1
     ports:
       - "8080:8080"
     links:
+      - redis
       - rabbitmq
     volumes: 
       - api-deps:/code/node_modules
       - .:/code
-  
+
+  redis:
+    image: "redis:alpine"
+
   rabbitmq:
     image: "rabbitmq:latest"
     # environment:

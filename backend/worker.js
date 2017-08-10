@@ -1,5 +1,6 @@
 const debug = require('debug')
 const amqplib = require('amqplib')
+const convert = require('./converter')
 
 const log = debug('worker:log')
 log.log = console.log.bind(console)
@@ -24,8 +25,11 @@ setTimeout(() => {
         if (msg !== null) {
           const msgContent = msg.content.toString()
 
-          log('Content : %s', msgContent)
+          log(`Content : ${msgContent}`)
           ch.ack(msg)
+
+          const taskData = JSON.parse(msgContent)
+          convert(taskData)
         }
       })
     })
