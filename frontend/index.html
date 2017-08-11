@@ -1,17 +1,83 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Convert Audio and Video</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link rel="stylesheet" href="index.css">
   </head>
   <body>
-      <form id="form">
-          <input type="file" name="file"> <br>
-          <input type="text" name="outputFormat" placeholder="outputFormat"> <br>
-          <input type="text" name="videoBitrate" placeholder="videoBitrate"> <br>
-          <input type="text" name="audioBitrate" placeholder="audioBitrate"> <br>
-          <input type="text" name="seekInput" placeholder="seekInput"> <br>
-          <input type="text" name="duration" placeholder="duration"> <br>
-          <input type="submit" value="Submit">
-      </form>
-      <script src="index.js"></script>  
+    <div class="container">
+      <div class="row">
+        <div class="col-4">
+          <form enctype="multipart/form-data" id="form">
+              <div class="form-group">  
+                <label for="file">Choose a file</label>
+                <input type="file" class="form-control-file" id="file" name="file" required>
+              </div>
+              <div class="form-group">
+                <label for="outputFormat">Output Format</label>
+                <select class="form-control" id="outputFormat" name="outputFormat" required>
+                  <option value="aac">AAC</option>
+                  <option value="mp3">MP3</option>
+                  <option value="ogg">OGG</option>
+                  <option value="wma">WMA</option>
+                  <option value="m4a">M4A</option>
+                  <option value="flac">FLAC</option>
+                  <option value="wav">WAV</option>
+                  <option value="mp4">MP4</option>
+                  <option value="avi">AVI</option>
+                  <option value="mpg">MPG</option>
+                  <option value="mov">MOV</option>
+                  <option value="wmv">WMV</option>
+                  <option value="mkv">MKV</option>
+                  <option value="m4v">M4V</option>
+                  <option value="webm">WEBM</option>
+                  <option value="flv">FLV</option>
+                  <option value="3gp">3GP</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="videoBitrate">Video Bitrate (in kbps)</label>
+                <input type="number" class="form-control" id="videoBitrate" name="videoBitrate" placeholder="9500">
+              </div>
+              <div class="form-group">
+                <label for="audioBitrate">Audio Bitrate (in kbps)</label>
+                <input type="number" class="form-control" id="audioBitrate" name="audioBitrate" placeholder="512">
+              </div>
+              <div class="form-group">
+                <label for="fromTime">From time</label>
+                <input type="text" class="form-control" id="fromTime" name="fromTime" placeholder="hh:mm:ss">
+              </div>
+              <div class="form-group">
+                <label for="toTime">To time</label>        
+                <input type="text" class="form-control" id="toTime" name="toTime" placeholder="hh:mm:ss">
+              </div>
+              <button type="submit" class="btn btn-primary">Upload and Convert</button>
+          </form>
+        </div>
+      </div>
+      <br>
+      <div class="upload-progress">
+        <span>Uploading file</span>
+        <div class="progress upload-progress">
+          <div class="progress-bar progress-bar-stripe progress-bar-animated" id="upload-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="process-progress">
+        <span>Successfully Uploaded! Processing the file now</span>
+        <div class="progress">
+            <div class="progress-bar progress-bar-stripe progress-bar-animated" id="process-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="download">
+        <span>Successfully coverted!</span>
+        <button class="btn btn-primary" id="download">Download file</button>
+      </div>
+    </div>
+    <script src="index.js"></script>
   </body>
 </html>
