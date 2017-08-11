@@ -24,19 +24,20 @@ examineFile.use((req, res, next) => {
   invalidFileError.clientError = true
 
   if (!file) {
+    log('No file was uploaded!')
     next(invalidFileError)
     return
   }
 
-  magic.detectFile(`${UPLOADS_DIRECTORY}/${file.filename}`, (err, mimetype) => {
+  magic.detectFile(`${UPLOADS_DIRECTORY}/${file.filename}`, (err, mimeType) => {
     if (err) {
       error(err)
-      next(invalidFileError)
-    } else if (ALLOWED_MIME_TYPES.includes(mimetype)) {
-      log(`Mime Type of the uploaded video ${file.filename} is ${mimetype} and it's ALLOWED`)
+      next(err)
+    } else if (ALLOWED_MIME_TYPES.includes(mimeType)) {
+      log(`Mime Type of the uploaded video ${file.filename} is ${mimeType} and it's ALLOWED`)
       next()
     } else {
-      log(`Mime Type of the uploaded video ${file.filename} is ${mimetype} and it's NOT ALLOWED`)
+      log(`Mime Type of the uploaded video ${file.filename} is ${mimeType} and it's NOT ALLOWED`)
       next(invalidFileError)
     }
   })

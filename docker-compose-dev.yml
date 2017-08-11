@@ -34,6 +34,8 @@ services:
     ports: 
       - 8080:80
     links:
+      - api
+    depends_on:
       - api  
     volumes:
       - ./backend/downloads/:/code/backend/downloads

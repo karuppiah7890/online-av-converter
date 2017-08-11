@@ -34,16 +34,18 @@ const convert = (args) => {
   } = args
 
   const outputFilename = `${inputFilename}.${outputFormat}`
-  client.hset([ inputFilename, 'status', status.idle ], redis.print)
   client.hset([ inputFilename, 'outputFilename', outputFilename ], redis.print)
-  client.hset([ inputFilename, 'progress', '0' ], redis.print)
 
+  const ffmpegTool =
   ffmpeg(`${UPLOADS_DIRECTORY}/${inputFilename}`)
-  .videoBitrate(videoBitrate)
-  .audioBitrate(audioBitrate)
-  .seekInput(seekInput)
-  .duration(duration)
-  .on('start', (commandLine) => {
+
+  if (videoBitrate) { ffmpegTool.videoBitrate(videoBitrate) }
+  if (audioBitrate) { ffmpegTool.audioBitrate(audioBitrate) }
+
+  if (seekInput) { ffmpegTool.seekInput(seekInput) }
+  if (duration) { ffmpegTool.duration(duration) }
+
+  ffmpegTool.on('start', (commandLine) => {
     log(`Spawned ffmpeg with command: ${commandLine}`)
     client.hset([ inputFilename, 'status', status.processing ], redis.print)
   })

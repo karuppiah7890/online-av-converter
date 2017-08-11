@@ -19,9 +19,11 @@
     "express": "^4.15.4",
     "fluent-ffmpeg": "^2.1.2",
     "jquery": "^3.2.1",
+    "mime": "^1.3.6",
     "mmmagic": "^0.4.5",
     "multer": "^1.3.0",
     "nodemon": "^1.11.0",
-    "redis": "^2.8.0"
+    "redis": "^2.8.0",
+    "timediff": "^1.1.1"
   }
 }

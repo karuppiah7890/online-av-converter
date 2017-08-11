@@ -6,6 +6,10 @@ const multer = require('multer')
 const redis = require('redis')
 const bodyParser = require('body-parser')
 const constants = require('../constants')
+const examineFile = require('./examineFile')
+const processInput = require('./processInput')
+
+const status = constants.processingStatus
 
 const ALLOWED_MIME_TYPES = constants.ALLOWED_MIME_TYPES
 const UPLOADS_DIRECTORY = constants.UPLOADS_DIRECTORY
@@ -25,9 +29,6 @@ const client = redis.createClient('redis://redis')
 client.on('error', (err) => {
   redisError(err)
 })
-
-// Check mimetype with the contents of the file
-const examineFile = require('./examineFile')
 
 var storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -59,8 +60,8 @@ const rabbitmqHostUrl = 'amqp://rabbitmq'
 
 const app = express()
 
-app.use(bodyParser.json())  // for parsing JSON body in POST requests
-app.use(bodyParser.urlencoded()) // for parsing url encoded form data in POST requests
+app.use(bodyParser.json()) // for parsing JSON body in POST requests
+app.use(bodyParser.urlencoded({ extended: true })) // for parsing url encoded form data in POST requests
 
 // Check if the API server is alive and ready to serve requests
 app.get('/alive', (req, res) => {
@@ -69,7 +70,7 @@ app.get('/alive', (req, res) => {
   })
 })
 
-app.post('/upload', upload.single('file'), examineFile, (req, res, next) => {
+app.post('/upload', upload.single('file'), examineFile, processInput, (req, res, next) => {
   // req.file is the file object with metadata
   // req.body will hold the text fields
   const {
@@ -78,7 +79,6 @@ app.post('/upload', upload.single('file'), examineFile, (req, res, next) => {
   } = req
 
   log(file)
-  body.inputFilename = file.filename
   const open = amqplib.connect(rabbitmqHostUrl)
   const q = 'tasks'
   // Task Producer
@@ -91,8 +91,11 @@ app.post('/upload', upload.single('file'), examineFile, (req, res, next) => {
   })
   .then((result) => {
     if (result) { log(result) }
+    client.hset([ body.inputFilename, 'status', status.idle ], redis.print)
+    client.hset([ body.inputFilename, 'progress', '0' ], redis.print)
+
     res.json({
-      inputFilename: file.filename
+      inputFilename: body.inputFilename
     })
   })
   .catch((err) => {
@@ -101,7 +104,19 @@ app.post('/upload', upload.single('file'), examineFile, (req, res, next) => {
 })
 
 app.post('/info', (req, res, next) => {
-  client.hgetall([ req.body.inputFilename ], (err, result) => {
+  let {
+    inputFilename
+  } = req.body
+
+  const invalidInputError = new Error('Invalid or no video filename')
+  invalidInputError.clientError = true
+
+  if (!inputFilename) {
+    next(invalidInputError)
+    return
+  }
+
+  client.hgetall([ inputFilename ], (err, result) => {
     if (err) {
       redisError(err)
       next(err)
