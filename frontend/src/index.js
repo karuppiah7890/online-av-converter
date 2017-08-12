@@ -1,7 +1,7 @@
 const $ = require('jquery')
 const status = require('../../constants').processingStatus
-const serverUrl = 'http://converter.karuppiah7890.dev:8080'
-const apiServerUrl = 'http://api.converter.karuppiah7890.dev:8080'
+const serverUrl = 'http://converter.karuppiah7890.me'
+const apiServerUrl = 'http://apiconverter.karuppiah7890.me'
 
 $(document).ready(() => {
   $('#form').submit((event) => {

@@ -1,0 +1,38 @@
+version: "2"
+
+services: 
+  api:
+    image: karuppiah7890/online-av-converter
+    command: npm start
+    environment:
+      - DEBUG=server:*,server-redis:*,worker:*,converter-ffmpeg:*,converter-redis:*,examineFile:*
+      - DEBUG_COLORS=true
+      - WORKER_STARTUP_SECONDS=120
+    links:
+      - redis
+      - rabbitmq
+    depends_on:
+      - redis
+      - rabbitmq
+    volumes: 
+      - ./data/uploads:/code/backend/uploads
+      - ./data/downloads:/code/backend/downloads
+
+  redis:
+    image: redis:alpine
+
+  rabbitmq:
+    image: rabbitmq:latest
+    environment:
+      - RABBITMQ_HIPE_COMPILE=1
+
+  nginx:
+    image: av-converter-nginx
+    ports: 
+      - 80:80
+    links:
+      - api
+    depends_on:
+      - api  
+    volumes:
+      - ./data/downloads/:/code/backend/downloads
