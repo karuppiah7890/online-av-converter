@@ -11,6 +11,3 @@ backend/downloads/
 # prod uploads and downloads folder
 data/uploads/
 data/downloads/
-
-# frontend build files
-frontend/build/
