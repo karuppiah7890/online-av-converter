@@ -27,7 +27,7 @@ services:
       - RABBITMQ_HIPE_COMPILE=1
 
   nginx:
-    image: av-converter-nginx
+    image: karuppiah7890/av-converter-nginx
     ports: 
       - 80:80
     links:
