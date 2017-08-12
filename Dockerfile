@@ -12,6 +12,10 @@ RUN yarn install
 
 COPY . .
 
+RUN mkdir -p /code/backend/uploads
+
+RUN mkdir -p /code/backend/downloads
+
 EXPOSE 8080
 
 CMD [ "npm" , "start" ]

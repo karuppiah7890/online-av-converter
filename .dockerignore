@@ -1,0 +1,16 @@
+# npm modules
+node_modules/
+
+# logs
+*.log
+
+# dev uploads and downloads folder
+backend/uploads/
+backend/downloads/
+
+# prod uploads and downloads folder
+data/uploads/
+data/downloads/
+
+# frontend build files
+frontend/build/
